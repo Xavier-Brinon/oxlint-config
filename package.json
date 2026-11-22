@@ -1,0 +1,19 @@
+{
+  "name": "oxlint-config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The shared oxlint config and the ways-of-working plugin every repo extends.",
+  "scripts": {
+    "test": "node --test",
+    "lint": "oxlint --deny-warnings",
+    "typecheck": "tsc",
+    "build": "node scripts/build.ts"
+  },
+  "devDependencies": {
+    "@oxlint/plugins": "1.94.0",
+    "@types/node": "26.6.6",
+    "oxlint": "1.94.0",
+    "typescript": "7.0.2"
+  }
+}
