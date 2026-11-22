@@ -29,9 +29,25 @@ const noComments       = {
   },
 };
 
+const requireDisableDescription       = {
+  meta: {
+    type: "problem",
+    messages: {
+      noReason: "A disable directive says why: add the reason after \" -- \" on the directive.",
+    },
+    schema: [],
+  },
+  create() {
+    return {};
+  },
+};
+
 const plugin         = {
   meta: { name: "ways-of-working" },
-  rules: { "no-comments": noComments },
+  rules: {
+    "no-comments": noComments,
+    "require-disable-description": requireDisableDescription,
+  },
 };
 
 export default plugin;
