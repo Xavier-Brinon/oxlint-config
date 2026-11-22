@@ -3,6 +3,7 @@
     "./plugin.js"
   ],
   "rules": {
-    "ways-of-working/no-comments": "error"
+    "ways-of-working/no-comments": "error",
+    "ways-of-working/require-disable-description": "error"
   }
 }

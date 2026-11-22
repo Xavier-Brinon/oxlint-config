@@ -1,5 +1,7 @@
 const directive = /^oxlint-(?:disable(?:-next-line|-line)?|enable)(?:\s|$)/;
 const expectError = /^@ts-expect-error(?:\W|$)/;
+const disableDirective = /^oxlint-disable(?:-next-line|-line)?(?:\s|$)/;
+const reason = /\s-{2,}\s+\S/;
 
 const isReadByTools = (comment         )          => {
   if (comment.type === "Shebang") return true;
@@ -37,8 +39,17 @@ const requireDisableDescription       = {
     },
     schema: [],
   },
-  create() {
-    return {};
+  create(context) {
+    return {
+      Program() {
+        for (const comment of context.sourceCode.getAllComments()) {
+          const text = comment.value.trim();
+          if (disableDirective.test(text) && !reason.test(text)) {
+            context.report({ messageId: "noReason", loc: comment.loc });
+          }
+        }
+      },
+    };
   },
 };
 
