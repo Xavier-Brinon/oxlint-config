@@ -1,0 +1,101 @@
+#+title: Oxlint-config
+#+author: Xavier Brinon
+#+date: [2026-11-22 Sun]
+#+options: toc:2 num:nil ^:{}
+#+startup: showall indent
+
+* Oxlint-config
+The shared oxlint setup every repo extends: one config file and one JS plugin,
+kept here as the single linked copy.
+
+It exists for the principle "No comments in LLM code" from Ways-of-working.
+Oxlint has no built-in rule that forbids comments, so the rule comes from a JS
+plugin (oxlint's ~jsPlugins~), and each repo's oxlint config extends the config
+that loads it.
+
+** What it enforces
+The rule ~ways-of-working/no-comments~ is set to error. It fails on every
+comment in the languages oxc parses (JavaScript, TypeScript, JSX and TSX): line
+comments, block comments, JSDoc, and comments inside JSX.
+
+Three kinds of comment pass, because a tool reads them:
+
+- Oxlint directives :: ~oxlint-disable~, ~oxlint-disable-line~,
+  ~oxlint-disable-next-line~, and the ~oxlint-enable~ that ends a disabled
+  block.
+- ~@ts-expect-error~ :: as a line comment or a block comment.
+- A shebang line :: such as =#!/usr/bin/env node=.
+
+~@ts-ignore~ is not an exception, on purpose: ~@ts-expect-error~ fails once the
+error it hides is gone, and ~@ts-ignore~ stays silent. The ~eslint-disable~
+spellings fail too, although oxlint obeys them.
+
+** Use it in another repo
+Add this repo as a git dependency, with oxlint at the version pinned here:
+
+#+begin_src shell
+aube add -D -E oxlint@1.94.0
+aube add -D oxlint-config@git+<remote>
+#+end_src
+
+=<remote>= is this repo's URL; it is not chosen yet. The ~oxlint-config@~ alias
+matters: without it aube names the dependency after the last part of the URL,
+and the path below would not match.
+
+Then extend the shared config from the repo's =.oxlintrc.json=:
+
+#+begin_src json
+{ "extends": ["./node_modules/oxlint-config/oxlintrc.json"] }
+#+end_src
+
+In =.oxlintrc.json=, ~extends~ takes file paths only, not package names, so the
+line names the file inside =node_modules=. The plugin is loaded from beside that
+file; the consuming repo does not list it.
+
+Run =aube exec oxlint= to lint. Oxlint skips what =.gitignore= lists, so
+=node_modules= must be ignored there.
+
+** Run the tests
+#+begin_src shell
+aube install
+aube run test
+aube run lint
+aube run typecheck
+#+end_src
+
+- =test= :: runs three suites with =node --test=: the rule under oxlint's
+  ~RuleTester~, a throwaway repo that extends the shared config and is linted
+  with the real CLI, and a check that [[file:plugin.js][plugin.js]] matches [[file:plugin.ts][plugin.ts]].
+- =lint= :: lints this repo with its own shared config, so its code carries no
+  comments either.
+- =typecheck= :: runs =tsc= over the TypeScript sources.
+
+** Change the rule
+Edit =plugin.ts=, then run =aube run build= and commit both files.
+
+Node does not strip types from files under =node_modules=, so a consumer cannot
+load =plugin.ts=. =plugin.js= is the file the shared config loads: =plugin.ts=
+with its types stripped by [[file:scripts/build.ts][scripts/build.ts]]. It is generated, never edited by
+hand, and the test suite fails when the two differ.
+
+** Layout
+#+caption: The files of this repo
+| File                       | Holds                                                   |
+|----------------------------+---------------------------------------------------------|
+| [[file:oxlintrc.json][oxlintrc.json]]              | The shared config other repos extend                    |
+| [[file:plugin.ts][plugin.ts]]                  | The ~ways-of-working~ plugin and its ~no-comments~ rule |
+| [[file:plugin.js][plugin.js]]                  | The generated plugin the shared config loads            |
+| [[file:scripts/build.ts][scripts/build.ts]]           | Generates =plugin.js= from =plugin.ts=                  |
+| [[file:test/no-comments.test.ts][test/no-comments.test.ts]]   | The rule's ~RuleTester~ suite                           |
+| [[file:test/shared-config.test.ts][test/shared-config.test.ts]] | Lints a throwaway consumer of the shared config         |
+| [[file:test/build.test.ts][test/build.test.ts]]         | Fails when =plugin.js= and =plugin.ts= differ           |
+| [[file:.oxlintrc.json][.oxlintrc.json]]             | This repo's own config, extending the shared one        |
+
+** What can break
+- JS plugins are alpha :: oxlint keeps ~jsPlugins~ outside semver, so any oxlint
+  release may change the plugin API. The version is pinned exactly here; raise
+  it here first, with the tests green, then in the consumers. Nothing checks
+  that a consumer runs the same version: aube does not check the peer
+  dependencies of a git dependency.
+- Type stripping :: =scripts/build.ts= uses Node's ~stripTypeScriptTypes~, which
+  Node 26 still marks experimental.
