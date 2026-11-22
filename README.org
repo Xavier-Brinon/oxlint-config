@@ -30,6 +30,18 @@ Three kinds of comment pass, because a tool reads them:
 error it hides is gone, and ~@ts-ignore~ stays silent. The ~eslint-disable~
 spellings fail too, although oxlint obeys them.
 
+A second rule, ~ways-of-working/require-disable-description~, is also set to
+error. A directive that disables a rule (~oxlint-disable~,
+~oxlint-disable-line~, ~oxlint-disable-next-line~) must say why, after =--= on
+the directive itself:
+
+#+begin_src typescript
+// oxlint-disable-next-line no-console -- this file is a script
+console.log(total);
+#+end_src
+
+~oxlint-enable~ needs no reason.
+
 ** Use it in another repo
 Add oxlint and this repo as a git dependency:
 
@@ -54,6 +66,9 @@ In =.oxlintrc.json=, ~extends~ takes file paths only, not package names, so the
 line names the file inside =node_modules=. The plugin is loaded from beside that
 file; the consuming repo does not list it.
 
+The repo's lockfile holds the commit of this repo it installed. To take a newer
+one, with any rule added since, run =aube update oxlint-config=.
+
 Run =aube exec oxlint= to lint. Oxlint skips what =.gitignore= lists, so
 =node_modules= must be ignored there.
 
@@ -65,7 +80,7 @@ aube run lint
 aube run typecheck
 #+end_src
 
-- =test= :: runs three suites with =node --test=: the rule under oxlint's
+- =test= :: runs four suites with =node --test=: each rule under oxlint's
   ~RuleTester~, a throwaway repo that extends the shared config and is linted
   with the real CLI, and a check that [[file:plugin.js][plugin.js]] matches [[file:plugin.ts][plugin.ts]].
 - =lint= :: lints this repo with its own shared config, so its code carries no
@@ -82,16 +97,17 @@ hand, and the test suite fails when the two differ.
 
 ** Layout
 #+caption: The files of this repo
-| File                       | Holds                                                   |
-|----------------------------+---------------------------------------------------------|
-| [[file:oxlintrc.json][oxlintrc.json]]              | The shared config other repos extend                    |
-| [[file:plugin.ts][plugin.ts]]                  | The ~ways-of-working~ plugin and its ~no-comments~ rule |
-| [[file:plugin.js][plugin.js]]                  | The generated plugin the shared config loads            |
-| [[file:scripts/build.ts][scripts/build.ts]]           | Generates =plugin.js= from =plugin.ts=                  |
-| [[file:test/no-comments.test.ts][test/no-comments.test.ts]]   | The rule's ~RuleTester~ suite                           |
-| [[file:test/shared-config.test.ts][test/shared-config.test.ts]] | Lints a throwaway consumer of the shared config         |
-| [[file:test/build.test.ts][test/build.test.ts]]         | Fails when =plugin.js= and =plugin.ts= differ           |
-| [[file:.oxlintrc.json][.oxlintrc.json]]             | This repo's own config, extending the shared one        |
+| File                                     | Holds                                                   |
+|------------------------------------------+---------------------------------------------------------|
+| [[file:oxlintrc.json][oxlintrc.json]]                            | The shared config other repos extend                    |
+| [[file:plugin.ts][plugin.ts]]                                | The ~ways-of-working~ plugin and its two rules          |
+| [[file:plugin.js][plugin.js]]                                | The generated plugin the shared config loads            |
+| [[file:scripts/build.ts][scripts/build.ts]]                         | Generates =plugin.js= from =plugin.ts=                  |
+| [[file:test/no-comments.test.ts][test/no-comments.test.ts]]                 | The ~RuleTester~ suite of ~no-comments~                 |
+| [[file:test/require-disable-description.test.ts][test/require-disable-description.test.ts]] | The ~RuleTester~ suite of ~require-disable-description~ |
+| [[file:test/shared-config.test.ts][test/shared-config.test.ts]]               | Lints a throwaway consumer of the shared config         |
+| [[file:test/build.test.ts][test/build.test.ts]]                       | Fails when =plugin.js= and =plugin.ts= differ           |
+| [[file:.oxlintrc.json][.oxlintrc.json]]                           | This repo's own config, extending the shared one        |
 
 ** What can break
 - JS plugins are alpha :: oxlint keeps ~jsPlugins~ outside semver, so any oxlint
