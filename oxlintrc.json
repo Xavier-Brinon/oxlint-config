@@ -1,0 +1,8 @@
+{
+  "jsPlugins": [
+    "./plugin.js"
+  ],
+  "rules": {
+    "ways-of-working/no-comments": "error"
+  }
+}
