@@ -1,4 +1,13 @@
-import type { Plugin, Rule } from "@oxlint/plugins";
+import type { Comment, Plugin, Rule } from "@oxlint/plugins";
+
+const directive = /^oxlint-(?:disable(?:-next-line|-line)?|enable)(?:\s|$)/;
+const expectError = /^@ts-expect-error(?:\W|$)/;
+
+const isReadByTools = (comment: Comment): boolean => {
+  if (comment.type === "Shebang") return true;
+  const text = comment.value.trim();
+  return directive.test(text) || expectError.test(text);
+};
 
 const noComments: Rule = {
   meta: {
@@ -9,8 +18,16 @@ const noComments: Rule = {
     },
     schema: [],
   },
-  create() {
-    return {};
+  create(context) {
+    return {
+      Program() {
+        for (const comment of context.sourceCode.getAllComments()) {
+          if (!isReadByTools(comment)) {
+            context.report({ messageId: "noComment", loc: comment.loc });
+          }
+        }
+      },
+    };
   },
 };
 
