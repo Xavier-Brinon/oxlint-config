@@ -9,13 +9,13 @@ importers:
   .:
     devDependencies:
       '@oxlint/plugins':
-        specifier: 1.94.0
+        specifier: latest
         version: 1.94.0
       '@types/node':
         specifier: 26.6.6
         version: 26.6.6
       oxlint:
-        specifier: 1.94.0
+        specifier: latest
         version: 1.94.0
       typescript:
         specifier: 7.0.2

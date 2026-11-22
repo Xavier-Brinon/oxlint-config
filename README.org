@@ -31,12 +31,15 @@ error it hides is gone, and ~@ts-ignore~ stays silent. The ~eslint-disable~
 spellings fail too, although oxlint obeys them.
 
 ** Use it in another repo
-Add this repo as a git dependency, with oxlint at the version pinned here:
+Add oxlint and this repo as a git dependency:
 
 #+begin_src shell
-aube add -D -E oxlint@1.94.0
+aube add -D oxlint
 aube add -D oxlint-config@git+<remote>
 #+end_src
+
+Oxlint is not pinned, here or in a consumer: a release that breaks the plugin
+should show early and be fixed forward here.
 
 =<remote>= is this repo's URL; it is not chosen yet. The ~oxlint-config@~ alias
 matters: without it aube names the dependency after the last part of the URL,
@@ -93,9 +96,9 @@ hand, and the test suite fails when the two differ.
 
 ** What can break
 - JS plugins are alpha :: oxlint keeps ~jsPlugins~ outside semver, so any oxlint
-  release may change the plugin API. The version is pinned exactly here; raise
-  it here first, with the tests green, then in the consumers. Nothing checks
-  that a consumer runs the same version: aube does not check the peer
-  dependencies of a git dependency.
+  release may change the plugin API. This repo asks for oxlint =latest= and does
+  not pin it, so a breaking release fails the tests here and the fix goes
+  forward. The lockfile still holds the version last resolved: run =aube update
+  oxlint @oxlint/plugins= to take the newest, then the tests.
 - Type stripping :: =scripts/build.ts= uses Node's ~stripTypeScriptTypes~, which
   Node 26 still marks experimental.
