@@ -35,15 +35,14 @@ Add oxlint and this repo as a git dependency:
 
 #+begin_src shell
 aube add -D oxlint
-aube add -D oxlint-config@git+<remote>
+aube add -D oxlint-config@git+https://github.com/Xavier-Brinon/oxlint-config.git
 #+end_src
 
 Oxlint is not pinned, here or in a consumer: a release that breaks the plugin
 should show early and be fixed forward here.
 
-=<remote>= is this repo's URL; it is not chosen yet. The ~oxlint-config@~ alias
-matters: without it aube names the dependency after the last part of the URL,
-and the path below would not match.
+The ~oxlint-config@~ alias matters: without it aube names the dependency after
+the last part of the URL, and the path below would not match.
 
 Then extend the shared config from the repo's =.oxlintrc.json=:
 
